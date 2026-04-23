@@ -35,7 +35,7 @@ const Footer = () => {
               <img
                 src={logo}
                 alt="Dona Alencar Closet"
-                className="w-10 h-10 rounded-full object-cover"
+                className="w-16 h-16 rounded-full object-cover shadow-soft"
               />
               <span className="font-display text-2xl font-semibold">
                 Dona Alencar <span className="text-primary">Closet</span>
