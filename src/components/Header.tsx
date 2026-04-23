@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import logo from "@/assets/dona-alencar-logo.jpeg";
 
 const Header = () => {
   const { totalItems, setIsCartOpen } = useCart();
@@ -22,11 +23,13 @@ const Header = () => {
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-display font-bold text-xl">V</span>
-            </div>
+            <img
+              src={logo}
+              alt="Dona Alencar Closet"
+              className="w-10 h-10 rounded-full object-cover"
+            />
             <span className="font-display text-xl md:text-2xl font-semibold text-foreground">
-              Vitrine<span className="text-primary">Shop</span>
+              Dona Alencar <span className="text-primary">Closet</span>
             </span>
           </Link>
 
