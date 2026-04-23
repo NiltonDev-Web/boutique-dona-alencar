@@ -9,7 +9,7 @@ import CartDrawer from "@/components/CartDrawer";
 
 const Index = () => {
   useEffect(() => {
-    document.title = "VitrineShop - Moda e Acessórios | Loja Online";
+    document.title = "Dona Alencar Closet - Moda e Acessórios | Loja Online";
   }, []);
 
   return (
