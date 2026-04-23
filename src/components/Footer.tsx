@@ -1,4 +1,5 @@
 import { Instagram, Facebook, Twitter, Heart } from "lucide-react";
+import logo from "@/assets/dona-alencar-logo.jpeg";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -31,15 +32,17 @@ const Footer = () => {
           {/* Brand */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-display font-bold text-xl">V</span>
-              </div>
+              <img
+                src={logo}
+                alt="Dona Alencar Closet"
+                className="w-10 h-10 rounded-full object-cover"
+              />
               <span className="font-display text-2xl font-semibold">
-                Vitrine<span className="text-primary">Shop</span>
+                Dona Alencar <span className="text-primary">Closet</span>
               </span>
             </div>
             <p className="text-accent-foreground/70 text-sm">
-              Moda que inspira, qualidade que encanta. Seu estilo, nossa paixão.
+              Moda que inspira, qualidade que encanta. Seu estilo é a nossa paixão.
             </p>
             <div className="flex gap-4">
               <a
@@ -119,7 +122,7 @@ const Footer = () => {
         <div className="border-t border-accent-foreground/10 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-accent-foreground/60">
-              © {currentYear} VitrineShop. Todos os direitos reservados.
+              © {currentYear} Dona Alencar Closet. Todos os direitos reservados.
             </p>
             <p className="text-sm text-accent-foreground/60 flex items-center gap-1">
               Feito com <Heart className="w-4 h-4 text-primary" /> no Brasil
