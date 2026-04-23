@@ -20,13 +20,13 @@ const Header = () => {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16 md:h-20">
+        <div className="flex items-center justify-between h-20 md:h-28">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
             <img
               src={logo}
               alt="Dona Alencar Closet"
-              className="w-10 h-10 rounded-full object-cover"
+              className="w-16 h-16 md:w-20 md:h-20 rounded-full object-cover shadow-soft"
             />
             <span className="font-display text-xl md:text-2xl font-semibold text-foreground">
               Dona Alencar <span className="text-primary">Closet</span>
