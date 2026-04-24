@@ -37,8 +37,8 @@ const Features = () => {
               <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary group-hover:shadow-glow transition-all duration-300">
                 <feature.icon className="w-7 h-7 text-primary group-hover:text-primary-foreground transition-colors" />
               </div>
-              <h3 className="font-semibold text-foreground mb-1">{feature.title}</h3>
-              <p className="text-sm text-muted-foreground">{feature.description}</p>
+              <h3 className="font-semibold text-card-foreground mb-1">{feature.title}</h3>
+              <p className="text-sm text-card-foreground/70">{feature.description}</p>
             </div>
           ))}
         </div>
