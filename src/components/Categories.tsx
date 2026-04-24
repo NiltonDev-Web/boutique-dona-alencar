@@ -10,8 +10,8 @@ const categories = [
 ];
 
 const Categories = () => {
-  const handleClick = (query: string) => {
-    const grid = document.getElementById("produtos");
+  const handleClick = (_query: string) => {
+    const grid = document.getElementById("products");
     grid?.scrollIntoView({ behavior: "smooth" });
   };
 
