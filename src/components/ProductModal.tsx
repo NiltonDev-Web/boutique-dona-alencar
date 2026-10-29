@@ -11,15 +11,23 @@ interface ProductModalProps {
 }
 
 const ProductModal = ({ product, isOpen, onClose }: ProductModalProps) => {
-  const { addToCart } = useCart();
+  const { addToCart, isLoading } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState<string | undefined>();
   const [selectedColor, setSelectedColor] = useState<string | undefined>();
 
   if (!isOpen || !product) return null;
 
-  const handleAddToCart = () => {
-    addToCart(product, quantity, selectedSize, selectedColor);
+  const handleAddToCart = async () => {
+    const size = selectedSize ?? (product.sizes?.length === 1 ? product.sizes[0] : undefined);
+    const color = selectedColor ?? (product.colors?.length === 1 ? product.colors[0] : undefined);
+    const before = isLoading;
+    if (before) return;
+    if (((product.sizes?.length ?? 0) > 1 && !size) || ((product.colors?.length ?? 0) > 1 && !color)) {
+      await addToCart(product, quantity, size, color); // shows the validation message
+      return;
+    }
+    await addToCart(product, quantity, size, color);
     onClose();
     setQuantity(1);
     setSelectedSize(undefined);
@@ -59,11 +67,7 @@ const ProductModal = ({ product, isOpen, onClose }: ProductModalProps) => {
           <div className="p-6 md:p-8 space-y-6 overflow-y-auto max-h-[50vh] md:max-h-[90vh]">
             <div>
               <p className="text-sm text-muted-foreground uppercase tracking-wider mb-2">
-                {product.category === "dresses" && "Vestidos"}
-                {product.category === "tops" && "Blusas"}
-                {product.category === "pants" && "Calças"}
-                {product.category === "accessories" && "Acessórios"}
-                {product.category === "shoes" && "Calçados"}
+                {product.category}
               </p>
               <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">
                 {product.name}
@@ -157,6 +161,7 @@ const ProductModal = ({ product, isOpen, onClose }: ProductModalProps) => {
                 size="lg"
                 className="flex-1"
                 onClick={handleAddToCart}
+                disabled={isLoading || !product.inStock}
               >
                 <ShoppingBag className="w-5 h-5 mr-2" />
                 Adicionar ao Carrinho
