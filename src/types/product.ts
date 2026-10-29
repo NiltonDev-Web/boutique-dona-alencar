@@ -13,16 +13,27 @@ export interface Product {
   price: number;
   originalPrice?: number;
   image: string;
+  gallery?: string[];
   category: string;
   description: string;
   sizes?: string[];
   colors?: string[];
   inStock: boolean;
   featured?: boolean;
+  rating?: number;
+  reviewsCount?: number;
+  sku?: string;
+  specifications?: {
+    material?: string;
+    modelagem?: string;
+    cuidados?: string;
+  };
+  isNew?: boolean;
   variants?: ProductVariant[];
 }
 
 export interface CartItem extends Product {
+  cartItemId?: string;
   quantity: number;
   selectedSize?: string;
   selectedColor?: string;
@@ -35,4 +46,12 @@ export interface Category {
   id: string;
   name: string;
   icon: string;
+}
+
+export interface Coupon {
+  code: string;
+  discountPercent?: number;
+  discountFixed?: number;
+  freeShipping?: boolean;
+  description: string;
 }

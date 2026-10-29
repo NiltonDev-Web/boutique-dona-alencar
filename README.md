@@ -1,73 +1,69 @@
-# Welcome to your Lovable project
+# Dona Alencar Closet
 
-## Project info
+Loja virtual de moda e acessórios. A aplicação usa React e Vite no frontend e a Shopify Storefront API para consultar produtos, administrar o carrinho e encaminhar o cliente ao checkout hospedado da loja.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Funcionalidades
 
-## How can I edit this code?
+- Catálogo de produtos carregado da Shopify, com filtros por categoria.
+- Seleção de variantes, como tamanho e cor, conforme as opções disponíveis no catálogo.
+- Carrinho sincronizado com a Shopify, com atualização de quantidades e remoção de itens.
+- Finalização da compra no checkout hospedado pela Shopify.
+- Consulta de preço e disponibilidade diretamente das variantes da loja.
 
-There are several ways of editing your application.
+## Requisitos
 
-**Use Lovable**
+- Node.js e npm
+- Uma loja Shopify configurada com produtos, variantes disponíveis e canal de vendas online ativo
+- Credenciais de acesso público à Shopify Storefront API
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+## Executar localmente
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+npm install
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+O Vite informa no terminal o endereço local da aplicação.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Configuração da Shopify
 
-**Use GitHub Codespaces**
+As configurações de conexão com a Shopify estão em [`src/lib/shopify.ts`](./src/lib/shopify.ts): domínio permanente da loja, versão da API Storefront e token público Storefront. Ao conectar outra loja, atualize esses valores com as credenciais **Storefront públicas** correspondentes.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Use somente credenciais públicas da Storefront API no frontend. Nunca coloque tokens de Admin API, senhas ou outros segredos no código cliente ou no repositório. O checkout e o processamento do pagamento acontecem na Shopify, não nesta aplicação.
 
-## What technologies are used for this project?
+Se a Shopify retornar que o pagamento é necessário ou se a loja não permitir criar carrinhos, confira o plano da loja, o canal de vendas online e as permissões/configurações da Storefront API.
 
-This project is built with:
+## Comandos
 
+| Comando | Descrição |
+| --- | --- |
+| `npm run dev` | Inicia o servidor de desenvolvimento |
+| `npm run build` | Gera a versão de produção em `dist/` |
+| `npm run build:dev` | Gera uma versão de desenvolvimento |
+| `npm run preview` | Pré-visualiza a versão compilada |
+| `npm run lint` | Executa o ESLint |
+
+## Tecnologias
+
+- React 18 e TypeScript
 - Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- Tailwind CSS e componentes shadcn/ui
+- React Router
+- TanStack Query
+- Shopify Storefront API (GraphQL)
+- Lucide React e Sonner
 
-## How can I deploy this project?
+## Estrutura principal
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+```text
+src/
+  components/   Componentes da loja, catálogo e carrinho
+  contexts/     Estado e sincronização do carrinho Shopify
+  lib/          Integração com Shopify
+  pages/        Páginas da loja e checkout
+  types/        Tipos de produtos, variantes e itens do carrinho
+```
 
-## Can I connect a custom domain to my Lovable project?
+## Publicação
 
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Execute `npm run build` e publique o conteúdo de `dist/` em um host estático. Como a aplicação usa rotas no navegador, configure o host para encaminhar rotas desconhecidas para `index.html`.
