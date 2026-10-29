@@ -1,10 +1,9 @@
-import { X, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
+import { X, Minus, Plus, ShoppingBag, Trash2, Loader2, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
-import { Link } from "react-router-dom";
 
 const CartDrawer = () => {
-  const { items, isCartOpen, setIsCartOpen, updateQuantity, removeFromCart, totalPrice } = useCart();
+  const { items, isCartOpen, setIsCartOpen, updateQuantity, removeFromCart, totalPrice, isLoading, checkout } = useCart();
 
   if (!isCartOpen) return null;
 
@@ -50,7 +49,7 @@ const CartDrawer = () => {
           ) : (
             items.map((item) => (
               <div
-                key={`${item.id}-${item.selectedSize}-${item.selectedColor}`}
+                key={item.variantId}
                 className="flex gap-4 p-4 bg-muted/50 rounded-xl"
               >
                 <img
@@ -72,7 +71,8 @@ const CartDrawer = () => {
                         variant="ghost"
                         size="sm"
                         className="h-8 w-8 p-0"
-                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                        disabled={isLoading}
+                        onClick={() => updateQuantity(item.variantId, item.quantity - 1)}
                       >
                         <Minus className="w-3 h-3" />
                       </Button>
@@ -83,7 +83,8 @@ const CartDrawer = () => {
                         variant="ghost"
                         size="sm"
                         className="h-8 w-8 p-0"
-                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        disabled={isLoading}
+                        onClick={() => updateQuantity(item.variantId, item.quantity + 1)}
                       >
                         <Plus className="w-3 h-3" />
                       </Button>
@@ -97,7 +98,8 @@ const CartDrawer = () => {
                   variant="ghost"
                   size="icon"
                   className="text-destructive hover:text-destructive"
-                  onClick={() => removeFromCart(item.id)}
+                  disabled={isLoading}
+                  onClick={() => removeFromCart(item.variantId)}
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>
@@ -115,11 +117,10 @@ const CartDrawer = () => {
                 R$ {totalPrice.toFixed(2).replace(".", ",")}
               </span>
             </div>
-            <Link to="/checkout" onClick={() => setIsCartOpen(false)}>
-              <Button size="lg" className="w-full">
-                Finalizar Compra
-              </Button>
-            </Link>
+            <Button size="lg" className="w-full" onClick={checkout} disabled={isLoading}>
+              {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Lock className="w-4 h-4 mr-2" />Finalizar Compra</>}
+            </Button>
+            <p className="text-xs text-center text-muted-foreground">Pagamento seguro: cartão, PIX e outras opções na próxima etapa.</p>
             <Button
               variant="outline"
               className="w-full"

@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { products, categories } from "@/data/products";
+import { useQuery } from "@tanstack/react-query";
+import { fetchProducts } from "@/lib/shopify";
+import { Loader2 } from "lucide-react";
 import ProductCard from "./ProductCard";
 import { Button } from "@/components/ui/button";
 import ProductModal from "./ProductModal";
@@ -9,6 +11,11 @@ const ProductGrid = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
+  const { data: products = [], isLoading } = useQuery({ queryKey: ["shopify-products"], queryFn: () => fetchProducts(50) });
+  const categories = [
+    { id: "all", name: "Todos", icon: "✨" },
+    ...Array.from(new Set(products.map((p) => p.category).filter(Boolean))).map((c) => ({ id: c, name: c.charAt(0).toUpperCase() + c.slice(1), icon: "" })),
+  ];
   const filteredProducts =
     selectedCategory === "all"
       ? products
@@ -36,7 +43,7 @@ const ProductGrid = () => {
               onClick={() => setSelectedCategory(category.id)}
               className="transition-all duration-300"
             >
-              <span className="mr-2">{category.icon}</span>
+              {category.icon && <span className="mr-2">{category.icon}</span>}
               {category.name}
             </Button>
           ))}
@@ -58,12 +65,12 @@ const ProductGrid = () => {
           ))}
         </div>
 
-        {/* Load More */}
-        <div className="text-center mt-12">
-          <Button variant="outline" size="lg">
-            Ver Mais Produtos
-          </Button>
-        </div>
+        {isLoading && (
+          <div className="flex justify-center py-16"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
+        )}
+        {!isLoading && filteredProducts.length === 0 && (
+          <p className="text-center text-muted-foreground py-16">Nenhum produto encontrado</p>
+        )}
       </div>
 
       {/* Product Modal */}

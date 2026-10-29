@@ -10,7 +10,9 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product, onQuickView }: ProductCardProps) => {
-  const { addToCart } = useCart();
+  const { addToCart, isLoading } = useCart();
+  const needsChoice = (product.sizes?.length ?? 0) > 1 || (product.colors?.length ?? 0) > 1;
+  const handleAdd = () => (needsChoice && onQuickView ? onQuickView(product) : addToCart(product, 1, product.sizes?.[0], product.colors?.[0]));
   const [isLiked, setIsLiked] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
@@ -79,10 +81,11 @@ const ProductCard = ({ product, onQuickView }: ProductCardProps) => {
           <Button
             variant="accent"
             className="w-full bg-background/90 text-foreground hover:bg-primary hover:text-primary-foreground"
-            onClick={() => addToCart(product)}
+            onClick={handleAdd}
+            disabled={isLoading || !product.inStock}
           >
             <ShoppingBag className="w-4 h-4 mr-2" />
-            Adicionar
+            {!product.inStock ? "Esgotado" : needsChoice ? "Escolher opções" : "Adicionar"}
           </Button>
         </div>
       </div>
@@ -90,11 +93,7 @@ const ProductCard = ({ product, onQuickView }: ProductCardProps) => {
       {/* Info */}
       <div className="p-4 space-y-2">
         <p className="text-xs text-muted-foreground uppercase tracking-wider">
-          {product.category === "dresses" && "Vestidos"}
-          {product.category === "tops" && "Blusas"}
-          {product.category === "pants" && "Calças"}
-          {product.category === "accessories" && "Acessórios"}
-          {product.category === "shoes" && "Calçados"}
+          {product.category}
         </p>
         <h3 className="font-display text-lg font-semibold text-foreground line-clamp-1">
           {product.name}
