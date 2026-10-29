@@ -1,93 +1,186 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 import { CartItem, Product } from "@/types/product";
 import { toast } from "sonner";
+import {
+  addLineToShopifyCart,
+  createShopifyCart,
+  fetchCartQuantity,
+  findVariant,
+  removeLineFromShopifyCart,
+  updateShopifyCartLine,
+} from "@/lib/shopify";
 
 interface CartContextType {
   items: CartItem[];
-  addToCart: (product: Product, quantity?: number, size?: string, color?: string) => void;
-  removeFromCart: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  addToCart: (product: Product, quantity?: number, size?: string, color?: string) => Promise<void>;
+  removeFromCart: (variantId: string) => Promise<void>;
+  updateQuantity: (variantId: string, quantity: number) => Promise<void>;
   clearCart: () => void;
+  checkout: () => void;
   totalItems: number;
   totalPrice: number;
+  isLoading: boolean;
   isCartOpen: boolean;
   setIsCartOpen: (open: boolean) => void;
 }
 
+const STORAGE_KEY = "shopify-cart";
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+type Persisted = { items: CartItem[]; cartId: string | null; checkoutUrl: string | null };
+const load = (): Persisted => {
+  try {
+    const s = localStorage.getItem(STORAGE_KEY);
+    if (s) return JSON.parse(s);
+  } catch { /* ignore */ }
+  return { items: [], cartId: null, checkoutUrl: null };
+};
+
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [items, setItems] = useState<CartItem[]>(() => {
-    const saved = localStorage.getItem("cart");
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [state, setState] = useState<Persisted>(load);
+  const stateRef = useRef(state);
+  stateRef.current = state;
+  const [isLoading, setIsLoading] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(items));
-  }, [items]);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }, [state]);
 
-  const addToCart = (product: Product, quantity = 1, size?: string, color?: string) => {
-    setItems((prev) => {
-      const existingItem = prev.find(
-        (item) => 
-          item.id === product.id && 
-          item.selectedSize === size && 
-          item.selectedColor === color
-      );
+  const reset = useCallback(() => setState({ items: [], cartId: null, checkoutUrl: null }), []);
 
-      if (existingItem) {
-        toast.success(`Quantidade atualizada no carrinho!`);
-        return prev.map((item) =>
-          item.id === product.id && 
-          item.selectedSize === size && 
-          item.selectedColor === color
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        );
+  // Clear local cart once the Shopify cart was completed/expired (e.g. after checkout)
+  const sync = useCallback(async () => {
+    const { cartId } = stateRef.current;
+    if (!cartId) return;
+    try {
+      const qty = await fetchCartQuantity(cartId);
+      if (qty === 0) reset();
+    } catch (e) {
+      console.error("Cart sync failed", e);
+    }
+  }, [reset]);
+
+  useEffect(() => {
+    sync();
+    const onVis = () => document.visibilityState === "visible" && sync();
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, [sync]);
+
+  useEffect(() => {
+    if (isCartOpen) sync();
+  }, [isCartOpen, sync]);
+
+  const run = async (fn: () => Promise<void>) => {
+    setIsLoading(true);
+    try {
+      await fn();
+    } catch (e) {
+      console.error(e);
+      toast.error("Não foi possível atualizar o carrinho. Tente novamente.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const addToCart = (product: Product, quantity = 1, size?: string, color?: string) =>
+    run(async () => {
+      if ((product.sizes?.length ?? 0) > 1 && !size) {
+        toast.error("Escolha um tamanho antes de adicionar.");
+        return;
       }
+      if ((product.colors?.length ?? 0) > 1 && !color) {
+        toast.error("Escolha uma cor antes de adicionar.");
+        return;
+      }
+      const variant = findVariant(product, size, color);
+      if (!variant || !variant.available) {
+        toast.error("Produto indisponível nesta opção.");
+        return;
+      }
+      const { items, cartId } = stateRef.current;
+      const existing = items.find((i) => i.variantId === variant.id);
+      const base: CartItem = {
+        ...product,
+        price: variant.price,
+        quantity,
+        selectedSize: size,
+        selectedColor: color,
+        variantId: variant.id,
+        variantTitle: variant.title,
+        lineId: null,
+      };
 
-      toast.success(`${product.name} adicionado ao carrinho!`);
-      return [...prev, { ...product, quantity, selectedSize: size, selectedColor: color }];
+      if (!cartId) {
+        const res = await createShopifyCart(variant.id, quantity);
+        if (!res) throw new Error("cart create failed");
+        setState({ cartId: res.cartId, checkoutUrl: res.checkoutUrl, items: [{ ...base, lineId: res.lineId }] });
+      } else if (existing?.lineId) {
+        const newQty = existing.quantity + quantity;
+        const res = await updateShopifyCartLine(cartId, existing.lineId, newQty);
+        if (res.cartNotFound) { reset(); return addToCart(product, quantity, size, color); }
+        setState((s) => ({ ...s, items: s.items.map((i) => (i.variantId === variant.id ? { ...i, quantity: newQty } : i)) }));
+      } else {
+        const res = await addLineToShopifyCart(cartId, variant.id, quantity);
+        if (res.cartNotFound) { reset(); return addToCart(product, quantity, size, color); }
+        setState((s) => ({ ...s, items: [...s.items, { ...base, lineId: res.lineId ?? null }] }));
+      }
+      toast.success(`${product.name} adicionado ao carrinho!`, { position: "top-center" });
+      setIsCartOpen(true);
     });
-    setIsCartOpen(true);
+
+  const removeFromCart = (variantId: string) =>
+    run(async () => {
+      const { items, cartId } = stateRef.current;
+      const item = items.find((i) => i.variantId === variantId);
+      if (!item?.lineId || !cartId) return;
+      const res = await removeLineFromShopifyCart(cartId, item.lineId);
+      if (res.cartNotFound) return reset();
+      setState((s) => {
+        const next = s.items.filter((i) => i.variantId !== variantId);
+        return next.length ? { ...s, items: next } : { items: [], cartId: null, checkoutUrl: null };
+      });
+      toast.info("Produto removido do carrinho", { position: "top-center" });
+    });
+
+  const updateQuantity = async (variantId: string, quantity: number) => {
+    if (quantity <= 0) return removeFromCart(variantId);
+    return run(async () => {
+      const { items, cartId } = stateRef.current;
+      const item = items.find((i) => i.variantId === variantId);
+      if (!item?.lineId || !cartId) return;
+      const res = await updateShopifyCartLine(cartId, item.lineId, quantity);
+      if (res.cartNotFound) return reset();
+      setState((s) => ({ ...s, items: s.items.map((i) => (i.variantId === variantId ? { ...i, quantity } : i)) }));
+    });
   };
 
-  const removeFromCart = (productId: string) => {
-    setItems((prev) => prev.filter((item) => item.id !== productId));
-    toast.info("Produto removido do carrinho");
-  };
-
-  const updateQuantity = (productId: string, quantity: number) => {
-    if (quantity <= 0) {
-      removeFromCart(productId);
+  const checkout = () => {
+    const url = stateRef.current.checkoutUrl;
+    if (!url) {
+      toast.error("Seu carrinho está vazio.");
       return;
     }
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === productId ? { ...item, quantity } : item
-      )
-    );
+    window.open(url, "_blank");
+    setIsCartOpen(false);
   };
 
-  const clearCart = () => {
-    setItems([]);
-    toast.info("Carrinho limpo");
-  };
-
-  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-  const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const totalItems = state.items.reduce((s, i) => s + i.quantity, 0);
+  const totalPrice = state.items.reduce((s, i) => s + i.price * i.quantity, 0);
 
   return (
     <CartContext.Provider
       value={{
-        items,
+        items: state.items,
         addToCart,
         removeFromCart,
         updateQuantity,
-        clearCart,
+        clearCart: reset,
+        checkout,
         totalItems,
         totalPrice,
+        isLoading,
         isCartOpen,
         setIsCartOpen,
       }}
@@ -99,8 +192,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 export const useCart = () => {
   const context = useContext(CartContext);
-  if (!context) {
-    throw new Error("useCart must be used within a CartProvider");
-  }
+  if (!context) throw new Error("useCart must be used within a CartProvider");
   return context;
 };
