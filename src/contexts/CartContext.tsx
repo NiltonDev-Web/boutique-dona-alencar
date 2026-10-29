@@ -100,6 +100,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
       const { items, cartId } = stateRef.current;
+      const hasDemoItems = items.some((item) => item.isDemo);
+      if (items.length > 0 && hasDemoItems !== Boolean(product.isDemo)) {
+        toast.error("Não é possível misturar produtos de teste com produtos da loja.");
+        return;
+      }
+
       const existing = items.find((i) => i.variantId === variant.id);
       const base: CartItem = {
         ...product,
@@ -112,7 +118,19 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         lineId: null,
       };
 
-      if (!cartId) {
+      if (product.isDemo) {
+        setState((current) => {
+          const currentItem = current.items.find((item) => item.variantId === variant.id);
+          const nextItems = currentItem
+            ? current.items.map((item) =>
+                item.variantId === variant.id
+                  ? { ...item, quantity: item.quantity + quantity }
+                  : item,
+              )
+            : [...current.items, base];
+          return { items: nextItems, cartId: null, checkoutUrl: null };
+        });
+      } else if (!cartId) {
         const res = await createShopifyCart(variant.id, quantity);
         if (!res) throw new Error("cart create failed");
         setState({ cartId: res.cartId, checkoutUrl: res.checkoutUrl, items: [{ ...base, lineId: res.lineId }] });
@@ -134,6 +152,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     run(async () => {
       const { items, cartId } = stateRef.current;
       const item = items.find((i) => i.variantId === variantId);
+      if (item?.isDemo) {
+        setState((current) => {
+          const nextItems = current.items.filter((currentItem) => currentItem.variantId !== variantId);
+          return nextItems.length
+            ? { ...current, items: nextItems }
+            : { items: [], cartId: null, checkoutUrl: null };
+        });
+        toast.info("Produto de teste removido do carrinho", { position: "top-center" });
+        return;
+      }
       if (!item?.lineId || !cartId) return;
       const res = await removeLineFromShopifyCart(cartId, item.lineId);
       if (res.cartNotFound) return reset();
@@ -149,6 +177,17 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return run(async () => {
       const { items, cartId } = stateRef.current;
       const item = items.find((i) => i.variantId === variantId);
+      if (item?.isDemo) {
+        setState((current) => ({
+          ...current,
+          items: current.items.map((currentItem) =>
+            currentItem.variantId === variantId
+              ? { ...currentItem, quantity }
+              : currentItem,
+          ),
+        }));
+        return;
+      }
       if (!item?.lineId || !cartId) return;
       const res = await updateShopifyCartLine(cartId, item.lineId, quantity);
       if (res.cartNotFound) return reset();
@@ -157,6 +196,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const checkout = () => {
+    if (stateRef.current.items.some((item) => item.isDemo)) {
+      toast.info("Carrinho de teste: nenhum pedido ou pagamento será enviado à Shopify.");
+      setIsCartOpen(false);
+      return;
+    }
+
     const url = stateRef.current.checkoutUrl;
     if (!url) {
       toast.error("Seu carrinho está vazio.");

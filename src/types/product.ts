@@ -29,6 +29,7 @@ export interface Product {
     cuidados?: string;
   };
   isNew?: boolean;
+  isDemo?: boolean;
   variants?: ProductVariant[];
 }
 

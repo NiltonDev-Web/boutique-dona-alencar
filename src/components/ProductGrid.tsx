@@ -6,12 +6,16 @@ import ProductCard from "./ProductCard";
 import { Button } from "@/components/ui/button";
 import ProductModal from "./ProductModal";
 import { Product } from "@/types/product";
+import { demoProducts } from "@/data/demo-products";
 
 const ProductGrid = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-  const { data: products = [], isLoading } = useQuery({ queryKey: ["shopify-products"], queryFn: () => fetchProducts(50) });
+  const { data: shopifyProducts = [], isLoading } = useQuery({ queryKey: ["shopify-products"], queryFn: () => fetchProducts(50) });
+  const products = import.meta.env.VITE_DEMO_PRODUCTS === "true"
+    ? [...shopifyProducts, ...demoProducts]
+    : shopifyProducts;
   const categories = [
     { id: "all", name: "Todos", icon: "✨" },
     ...Array.from(new Set(products.map((p) => p.category).filter(Boolean))).map((c) => ({ id: c, name: c.charAt(0).toUpperCase() + c.slice(1), icon: "" })),

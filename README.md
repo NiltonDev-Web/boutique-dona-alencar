@@ -33,6 +33,18 @@ Use somente credenciais públicas da Storefront API no frontend. Nunca coloque t
 
 Se a Shopify retornar que o pagamento é necessário ou se a loja não permitir criar carrinhos, confira o plano da loja, o canal de vendas online e as permissões/configurações da Storefront API.
 
+## Produtos de demonstração
+
+Para testar o catálogo e o carrinho sem cadastrar produtos na Shopify, crie um arquivo `.env.local` na raiz com:
+
+```env
+VITE_DEMO_PRODUCTS=true
+```
+
+Inicie ou reinicie `npm run dev`. O catálogo passa a mostrar dois produtos de exemplo em cada categoria (vestidos, blusas, calças, calçados, bolsas e acessórios), com imagens, opções e preços ilustrativos em reais. Produtos de demonstração podem ser adicionados, alterados e removidos no carrinho local, mas não podem ser misturados a produtos Shopify nem enviados para o checkout ou cobrados. Para voltar ao catálogo normal, remova a variável do `.env.local` ou defina `VITE_DEMO_PRODUCTS=false`.
+
+Os preços são valores de referência para testes e não uma pesquisa de mercado ao vivo nem preços de venda da loja. As imagens são carregadas do Unsplash pela internet.
+
 ## Comandos
 
 | Comando | Descrição |

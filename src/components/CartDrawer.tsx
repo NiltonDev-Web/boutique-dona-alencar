@@ -62,6 +62,7 @@ const CartDrawer = () => {
                     {item.name}
                   </h3>
                   <div className="text-sm text-muted-foreground space-y-1">
+                    {item.isDemo && <p className="font-medium text-amber-600">Produto de teste</p>}
                     {item.selectedSize && <p>Tamanho: {item.selectedSize}</p>}
                     {item.selectedColor && <p>Cor: {item.selectedColor}</p>}
                   </div>

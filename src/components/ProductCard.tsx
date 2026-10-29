@@ -38,6 +38,11 @@ const ProductCard = ({ product, onQuickView }: ProductCardProps) => {
         
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-2">
+          {product.isDemo && (
+            <span className="bg-amber-500 text-white text-xs font-bold px-2 py-1 rounded-md">
+              Teste
+            </span>
+          )}
           {discount > 0 && (
             <span className="bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded-md">
               -{discount}%
