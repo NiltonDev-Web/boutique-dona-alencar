@@ -35,13 +35,13 @@ Se a Shopify retornar que o pagamento é necessário ou se a loja não permitir 
 
 ## Produtos de demonstração
 
-Para testar o catálogo e o carrinho sem cadastrar produtos na Shopify, crie um arquivo `.env.local` na raiz com:
+No servidor local de desenvolvimento (`npm run dev`), os produtos de demonstração aparecem automaticamente junto com os produtos da Shopify. Para ocultá-los localmente, adicione esta opção ao arquivo `.env.local`:
 
 ```env
-VITE_DEMO_PRODUCTS=true
+VITE_DEMO_PRODUCTS=false
 ```
 
-Inicie ou reinicie `npm run dev`. O catálogo passa a mostrar dois produtos de exemplo em cada categoria (vestidos, blusas, calças, calçados, bolsas e acessórios), com imagens, opções e preços ilustrativos em reais. Produtos de demonstração podem ser adicionados, alterados e removidos no carrinho local, mas não podem ser misturados a produtos Shopify nem enviados para o checkout ou cobrados. Para voltar ao catálogo normal, remova a variável do `.env.local` ou defina `VITE_DEMO_PRODUCTS=false`.
+Para habilitá-los em uma compilação de produção ou pré-visualização, defina `VITE_DEMO_PRODUCTS=true` no ambiente de build. O catálogo mostra dois produtos de exemplo em cada categoria (vestidos, blusas, calças, calçados, bolsas e acessórios), com imagens, opções e preços ilustrativos em reais. Produtos de demonstração podem ser adicionados, alterados e removidos no carrinho local, mas não podem ser misturados a produtos Shopify nem enviados para o checkout ou cobrados. Eles não são cadastrados no painel administrativo da Shopify.
 
 Os preços são valores de referência para testes e não uma pesquisa de mercado ao vivo nem preços de venda da loja. As imagens são carregadas do Unsplash pela internet.
 

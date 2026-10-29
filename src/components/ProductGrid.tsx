@@ -13,7 +13,9 @@ const ProductGrid = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   const { data: shopifyProducts = [], isLoading } = useQuery({ queryKey: ["shopify-products"], queryFn: () => fetchProducts(50) });
-  const products = import.meta.env.VITE_DEMO_PRODUCTS === "true"
+  const showDemoProducts = import.meta.env.VITE_DEMO_PRODUCTS === "true" ||
+    (import.meta.env.DEV && import.meta.env.VITE_DEMO_PRODUCTS !== "false");
+  const products = showDemoProducts
     ? [...shopifyProducts, ...demoProducts]
     : shopifyProducts;
   const categories = [
@@ -34,7 +36,9 @@ const ProductGrid = () => {
             Nossa <span className="text-gradient">Coleção</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Explore nossas peças selecionadas com carinho para você
+            {showDemoProducts
+              ? "Produtos de demonstração para testar o catálogo e o carrinho. Não são itens cadastrados na Shopify."
+              : "Explore nossas peças selecionadas com carinho para você"}
           </p>
         </div>
 
